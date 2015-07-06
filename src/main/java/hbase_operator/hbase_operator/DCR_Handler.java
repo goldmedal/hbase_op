@@ -1,5 +1,8 @@
 package hbase_operator.hbase_operator;
 
+import java.io.FileReader;
+import java.io.BufferedReader;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,53 +24,14 @@ public class DCR_Handler {
 	
 	public static void main(String[] args) throws IOException  {
 		
-		
-		String data = "{"
-
-				+"	\"CPA_Info\" : {"
-		+"\"Name\" : \"CPA01\","
-		+"\"Company\" : \"FATEK\","
-	+"	\"Timestamp\" : \"2015-04-21T12:00:00+08:00\""
-	+"	},"
-
-	+"	\"Sensor_Info\" : {"
-+"		\"Sensor1\" : {"
-+"			\"Type\" : \"Temperature\","
-+"			\"FiledNumber\" : \"1\""		
-+"		},"
-
-+"	\"Sensor2\" : {"
-+"			\"Type\" : \"Temperature\","
-+"			\"FiledNumber\" : \"2\""
-+"		}"
-
-+"	},"
-
-	+"\"Data_List\" : {"
-+"		\"1\" : {"
-+"			\"Timestamp\" : \"2015-04-20T00:00:00+08:00\","
-+"			\"Sensor_Value\" : {"
-	+"			\"1\" : \"23\","
-		+"		\"2\" : \"25\""
-		+"		}"
-		+"	},"
-	+"	\"2\" : {"
-		+"	\"Timestamp\" : \"2015-04-20T01:00:00+08:00\","
-		+"	\"Sensor_Value\" : {"
-		+"		\"1\" : \"24.6\","
-		+"		\"2\" : \"28\""
-		+"	}"
-		+"	},"
-	+"	\"3\" : {"
-	+"		\"Timestamp\" : \"2015-04-20T02:00:00+08:00\","
-	+"		\"Sensor_Value\" : {"
-		+"		\"1\" : \"25\","
-		+"		\"2\" : \"27\""
-						+"}"
-		+"	}"
-		+"	}"
-
-+"}";
+		String data = "";
+		FileReader fr = new FileReader("/home/hduser/tomcat_workspace/input/dcr.json");
+		BufferedReader br = new BufferedReader(fr);
+		while (br .ready()) {
+			data = data + br.readLine();
+		}
+		System.out.println("-------------data-----------");
+		System.out.println(data);
 		// String data = args[0];
 		JSONObject obj = new JSONObject(data);
 		String tableName = obj.getJSONObject("CPA_Info").getString("Name");

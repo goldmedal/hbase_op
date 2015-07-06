@@ -1,5 +1,8 @@
 package hbase_operator.hbase_operator;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,26 +25,13 @@ public class queryData {
 	
     public static void main( String[] args ) throws IOException
     {
-    		
-		System.out.println("-------Start Query!-------");
-		String data = "{"
-
-				+"	\"CPA_Info\" : {"
-		+"\"Name\" : \"CPA01\","
-		+"\"Company\" : \"FATEK\","
-	+"	\"Timestamp\" : \"2015-04-21T12:00:00+08:00\""
-	+"	},"
-
-+"\"Query_Request\" : {"
-+"	\"Name\" : \"GetDataCountBySensor\","
-	+"	\"Parameter\" : {"
-	+"		\"Sensor_Name\" : \"Sensor2\","
-	+"		\"Start\" : \"27\","
-	+"		\"End\" : \"28\""
-	+"	}"
-	+"}"
-+"}";
-		
+    	
+		String data = "";
+		FileReader fr = new FileReader("/home/hduser/tomcat_workspace/input/query.json");
+		BufferedReader br = new BufferedReader(fr);
+		while (br .ready()) {
+			data = data + br.readLine();
+		}
 		// System.out.println(data);
 		// String data = args[0];
 		JSONObject obj = new JSONObject(data);
@@ -52,6 +42,11 @@ public class queryData {
 		String returnValue = hBase.json_query(data);
 		System.out.println(returnValue);
 		hBase.close();
+		
+    	FileWriter fw = new FileWriter("/home/hduser/tomcat_workspace/output/query_result.json");
+    	fw.write(returnValue);
+    	fw.flush();
+    	fw.close();
 	    
 	  }	
 	

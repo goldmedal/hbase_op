@@ -92,13 +92,15 @@ public class HbaseOp
 	    	JSONObject jobj = i_it.next();
 	    	JSONObject sensor_value = jobj.getJSONObject("Sensor_Value");
 	    	Map value_list = getKeyValueMap4Json(sensor_value);
-	    	    	
+	    	  System.out.println(value_list.toString());
 	    	for (Object key : value_list.keySet()){
 			    String col = (String) sensorNumNameMap.get(key);
 			    String value = (String) value_list.get(key);
 			    String time = (String) jobj.getString("Timestamp");
 			    String num = (String) key;
 			    String type = (String) sensorNameTypeMap.get(col);
+			    System.out.println("---------------1data1------------");
+			    System.out.println("col: " + col + " value: " +value+ " time: "+time+" num: " +num+ " type: "+type);
 			    
 			    Put p = new Put(Bytes.toBytes(time));
 			    p.addColumn(Bytes.toBytes("FIELD"), Bytes.toBytes(col), Bytes.toBytes(value));
@@ -128,13 +130,22 @@ public class HbaseOp
     	switch(query.getString("Name")) {
     	
     	case "GetDataCountByTime":
+    		System.out.println("-----get count by time-----");
     		result = getDataCountByTime(para);
     		Ack = "0";
     		Message = "success";
     		break;
     		
     	case "GetDataCountBySensor":
+    		System.out.println("-----get count by sensor-----");
     		result = getDataCountBySensor(para);
+    		Ack = "0";
+    		Message = "success";
+    		break;
+    		
+    	case "GetDataCount" :
+    		System.out.println("-----get count -----");
+    		result = getDataCount(para);
     		Ack = "0";
     		Message = "success";
     		break;
@@ -151,6 +162,63 @@ public class HbaseOp
     //	String sum = jsonData + ", " + result + " }";
     	return result;
     }
+    
+    public String getDataCount(JSONObject para) throws IOException
+    {
+    	String returnValue = "";
+    	String start = para.getString("Start");
+    	String end = para.getString("End")+1;
+    	String upper = para.getString("Upper");
+    	String lower = para.getString("Lower");
+    	String sensor = para.getString("Sensor_Name");
+    	System.out.println("End :" + lower +" Sensor : "+ sensor);
+    	
+    	
+    	Table t = this.connection.getTable(table);
+    	Get get = new Get(Bytes.toBytes("row"));
+    	Result rowResult = t.get(get);
+    	
+    	Map buffer = new HashMap();
+    	
+    	/*Filter filter1 = new SingleColumnValueFilter(Bytes.toBytes("FIELD"), Bytes.toBytes(sensor), CompareOp.GREATER_OR_EQUAL, Bytes.toBytes(lower));
+    	Filter filter2 = new SingleColumnValueFilter(Bytes.toBytes("FIELD"), Bytes.toBytes(sensor), CompareOp.LESS_OR_EQUAL, Bytes.toBytes(upper));
+    	FilterList filterlist = new FilterList();
+    	filterlist.addFilter(filter1);
+    	filterlist.addFilter(filter2);
+    	*/
+    	Scan scan = new Scan(Bytes.toBytes(start), Bytes.toBytes(end));;
+
+    //	scan.setFilter(filterlist);
+    	
+    	try (ResultScanner scanner = t.getScanner(scan)) {
+    		for(Result result = scanner.next(); (result != null); result = scanner.next()) {
+    			for(Cell cell : result.rawCells()) {
+    				String rowkey = new String(cloneRow(cell));
+    				String value = new String(cloneValue(cell));
+    				String qualifier = new String(cloneQualifier(cell));
+    				String family = new String(cloneFamily(cell));
+    			
+	    			if(family.equals("FIELD") && qualifier.equals(sensor)){
+	    				  System.out.println(rowkey +"  "+ value+ " " + qualifier + " " + family);
+	    				if( Float.valueOf(value) >=   Float.valueOf(lower) &&  Float.valueOf(value) <= Float.valueOf(upper)){
+							if(!(buffer.containsKey(rowkey)) ){
+								buffer.put(rowkey, 1);
+						//		System.out.println(rowkey +"  "+ value+ " " + qualifier);
+								
+							}
+	    				}
+	    			}
+
+    			}
+    		}
+    	} // try
+    	
+    	int len = buffer.size();
+    	String result = "{\"Result\" : \"" + len + "\"}";
+    
+    	return result;
+    }
+    
     public String getDataCountByTime(JSONObject para) throws IOException
     {
     	String returnValue = "";
@@ -371,7 +439,7 @@ public class HbaseOp
         while( keyIter.hasNext())
         {
             key = (String)keyIter.next();
-            value = jsonObject.getJSONObject(key).get("FiledNumber");
+            value = jsonObject.getJSONObject(key).get("FieldNumber");
             valueMap.put(value, key);
         }
         
